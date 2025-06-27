@@ -1,15 +1,23 @@
 {% extends "layout.html" %}
+
 {% block content %}
     <h2>Lista de Catequizandos</h2>
     <table>
         <thead>
             <tr>
+                <!-- ... en el thead de la tabla ... -->
                 <th>Nombre Completo</th>
                 <th>Cédula</th>
                 <th>Estado</th>
-                {% if session.rol == 'admin' %}
-                    <th>Acciones</th>
-                {% endif %}
+                <th>Grupo</th> <!-- ### COLUMNA NUEVA ### -->
+                {% if session.rol == 'admin' %} ...
+
+                <!-- ... en el tbody de la tabla ... -->
+                <td>{{ c.datos_personales.nombres }} {{ c.datos_personales.apellidos }}</td>
+                <td>{{ c.datos_personales.cedula }}</td>
+                <td>{{ c.estado }}</td>
+                <td>{{ c.grupo_info.nombre or 'Sin asignar' }}</td> <!-- ### COLUMNA NUEVA ### -->
+                {% if session.rol == 'admin' %} ...
             </tr>
         </thead>
         <tbody>
@@ -18,10 +26,11 @@
                 <td>{{ c.datos_personales.nombres }} {{ c.datos_personales.apellidos }}</td>
                 <td>{{ c.datos_personales.cedula }}</td>
                 <td>{{ c.estado }}</td>
+                <!-- La columna de datos de acciones también se muestra solo para el admin -->
                 {% if session.rol == 'admin' %}
                     <td class="actions">
                         <a href="{{ url_for('editar_catequizando', id=c._id) }}">Editar</a>
-                        <form action="{{ url_for('eliminar_catequizando', id=c._id) }}" method="post" onsubmit="return confirm('¿Estás seguro de que quieres eliminar este registro?');">
+                        <form action="{{ url_for('eliminar_catequizando', id=c._id) }}" method="post" onsubmit="return confirm('¿Estás seguro de que quieres eliminar este catequizando?');">
                             <button type="submit">Eliminar</button>
                         </form>
                     </td>
@@ -29,7 +38,10 @@
             </tr>
             {% else %}
             <tr>
-                <td colspan="4" style="text-align: center;">No hay catequizandos para mostrar.</td>
+                <!-- El colspan se ajusta dinámicamente -->
+                <td colspan="{{ 4 if session.rol == 'admin' else 3 }}" style="text-align: center;">
+                    No hay catequizandos para mostrar.
+                </td>
             </tr>
             {% endfor %}
         </tbody>

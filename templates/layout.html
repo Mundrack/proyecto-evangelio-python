@@ -4,43 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Catequesis</title>
-    <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; color: #1c1e21; }
-        .container { max-width: 1024px; margin: auto; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1), 0 8px 16px rgba(0,0,0,0.1); }
-        nav { display: flex; justify-content: space-between; align-items: center; background: #5a2a88; padding: 12px 25px; border-radius: 8px; margin-bottom: 25px; }
-        nav a { color: white; text-decoration: none; padding: 8px 16px; font-weight: bold; border-radius: 6px; transition: background-color 0.2s ease-in-out; }
-        nav a:hover { background-color: #7b4fb1; }
-        .nav-left, .nav-right { display: flex; align-items: center; gap: 15px; }
-        .user-info { color: #e9d8ff; }
-        h1, h2 { color: #5a2a88; border-bottom: 2px solid #f0f2f5; padding-bottom: 10px; }
-        .flash { padding: 15px; margin: 0 0 20px 0; border-radius: 6px; border: 1px solid transparent; }
-        .flash.success { background-color: #d4edda; color: #155724; border-color: #c3e6cb; }
-        .flash.error { background-color: #f8d7da; color: #721c24; border-color: #f5c6cb; }
-        .flash.warning { background-color: #fff3cd; color: #856404; border-color: #ffeeba; }
-        .flash.info { background-color: #d1ecf1; color: #0c5460; border-color: #bee5eb; }
-        .form-container { max-width: 550px; margin: 30px auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
-        form { display: flex; flex-direction: column; gap: 18px; }
-        input, select, button { padding: 12px; border-radius: 6px; border: 1px solid #ccc; font-size: 16px; }
-        button { background-color: #5a2a88; color: white; cursor: pointer; border: none; font-weight: bold; }
-        button:hover { background-color: #4e2474; }
-        table { width: 100%; border-collapse: collapse; margin-top: 25px; font-size: 15px; }
-        th, td { padding: 14px; border-bottom: 1px solid #ddd; text-align: left; }
-        tr:nth-child(even) { background-color: #f8f9fa; }
-        tr:hover { background-color: #e9ecef; }
-        th { background-color: #5a2a88; color: white; }
-        .actions a, .actions button { font-size: 14px; padding: 6px 12px; margin-right: 5px; color:white; background-color: #0d6efd; border-radius: 5px; text-decoration: none; border: none; cursor: pointer; }
-        .actions .delete-btn { background-color: #dc3545; }
-        .actions .delete-btn:hover { background-color: #c82333; }
-        .actions a:hover { background-color: #0b5ed7; }
-        .actions form { display: inline; }
-    </style>
+    <!-- ### CAMBIO 1: Enlazamos nuestro archivo CSS externo -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
     <div class="container">
         <nav>
             <div class="nav-left">
-                {% if session.usuario %}
+                {% if session.user_id %}
+                <!-- ... dentro del nav-left ... -->
+                {% if session.rol == 'admin' %}
+                    <a href="{{ url_for('agregar_catequizando') }}">Agregar Catequizando</a>
+                    <a href="{{ url_for('registrar_usuario') }}">Registrar Usuario</a>
+                    <!-- ### LÍNEA AÑADIDA ### -->
+                    <a href="{{ url_for('lista_grupos') }}">Gestionar Grupos</a>
+                {% endif %}
+                <!-- ... -->
                     <a href="{{ url_for('index') }}">Inicio</a>
+                    {# Solo los admins ven estas opciones #}
                     {% if session.rol == 'admin' %}
                         <a href="{{ url_for('agregar_catequizando') }}">Agregar Catequizando</a>
                         <a href="{{ url_for('registrar_usuario') }}">Registrar Usuario</a>
@@ -48,8 +29,9 @@
                 {% endif %}
             </div>
             <div class="nav-right">
-                {% if session.usuario %}
-                    <span class="user-info"><strong>{{ session.usuario }}</strong> ({{ session.rol }})</span>
+                {% if session.user_id %}
+                    <!-- ### CAMBIO 2: Mostramos el nombre completo, que es más amigable -->
+                    <span class="user-info">{{ session.nombre_completo }} <span>({{ session.rol }})</span></span>
                     <a href="{{ url_for('logout') }}">Cerrar Sesión</a>
                 {% else %}
                     <a href="{{ url_for('login') }}">Iniciar Sesión</a>
@@ -65,7 +47,9 @@
             {% endif %}
         {% endwith %}
 
-        {% block content %}{% endblock %}
+        <main>
+            {% block content %}{% endblock %}
+        </main>
     </div>
 </body>
 </html>

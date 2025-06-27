@@ -1,0 +1,41 @@
+{% extends "layout.html" %}
+
+{% block content %}
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h2>Gestión de Grupos</h2>
+        <a href="{{ url_for('agregar_grupo') }}" class="button-like">Crear Nuevo Grupo</a>
+    </div>
+    <table>
+        <thead>
+            <tr>
+                <th>Nombre del Grupo</th>
+                <th>Descripción</th>
+                <th>Catequista a Cargo</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for grupo in grupos %}
+            <tr>
+                <td>{{ grupo.nombre }}</td>
+                <td>{{ grupo.descripcion or 'N/A' }}</td>
+                <td>{{ grupo.catequista_info.nombre_completo or 'Sin asignar' }}</td>
+                <td class="actions">
+                    <!-- Aquí irían botones de editar/eliminar grupo en el futuro -->
+                    <a href="#">Editar</a>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="4" style="text-align: center;">No hay grupos creados.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <style>
+        .button-like {
+            background-color: #5a2a88; color: white; padding: 10px 15px;
+            text-decoration: none; border-radius: 5px; font-weight: bold;
+        }
+    </style>
+{% endblock %}
