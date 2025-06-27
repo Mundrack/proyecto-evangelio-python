@@ -1,0 +1,28 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="form-container">
+    <h2>Registrar Nuevo Usuario del Sistema</h2>
+    <form action="{{ url_for('registrar_usuario') }}" method="post">
+        <label for="nombre_completo">Nombre Completo:</label>
+        <input type="text" id="nombre_completo" name="nombre_completo" required>
+
+        <label for="usuario">Nombre de Usuario (para login):</label>
+        <input type="text" id="usuario" name="usuario" required>
+
+        <label for="contrasena">Contraseña:</label>
+        <input type="password" id="contrasena" name="contrasena" required>
+
+        <label for="rol">Rol:</label>
+        <select id="rol" name="rol">
+            <option value="admin">Administrador</option>
+            <option value="catequista">Catequista</option>
+            <option value="catequizando">Catequizando</option>
+        </select>
+        
+        <label for="cedula_asociada">Cédula del Catequizando (solo si el rol es 'catequizando'):</label>
+        <input type="text" id="cedula_asociada" name="cedula_asociada">
+
+        <button type="submit">Registrar Usuario</button>
+    </form>
+</div>
+{% endblock %}

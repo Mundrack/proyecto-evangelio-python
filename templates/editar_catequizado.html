@@ -1,0 +1,32 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="form-container">
+    <h2>Editar Catequizando</h2>
+    {% if catequizando %}
+    <form action="{{ url_for('editar_catequizando', id=catequizando._id) }}" method="post">
+        <label for="nombres">Nombres:</label>
+        <input type="text" id="nombres" name="nombres" value="{{ catequizando.datos_personales.nombres }}" required>
+        <label for="apellidos">Apellidos:</label>
+        <input type="text" id="apellidos" name="apellidos" value="{{ catequizando.datos_personales.apellidos }}" required>
+        <label for="cedula">Cédula:</label>
+        <input type="text" id="cedula" name="cedula" value="{{ catequizando.datos_personales.cedula }}" required>
+        <label for="fecha_nacimiento">Fecha de Nacimiento:</label>
+        <input type="date" id="fecha_nacimiento" name="fecha_nacimiento" value="{{ catequizando.datos_personales.fecha_nacimiento.strftime('%Y-%m-%d') }}" required>
+        <label for="genero">Género:</label>
+        <select id="genero" name="genero">
+            <option value="M" {% if catequizando.datos_personales.genero == 'M' %}selected{% endif %}>Masculino</option>
+            <option value="F" {% if catequizando.datos_personales.genero == 'F' %}selected{% endif %}>Femenino</option>
+            <option value="O" {% if catequizando.datos_personales.genero == 'O' %}selected{% endif %}>Otro</option>
+        </select>
+        <label for="estado">Estado:</label>
+        <select id="estado" name="estado">
+            <option value="Activo" {% if catequizando.estado == 'Activo' %}selected{% endif %}>Activo</option>
+            <option value="Inactivo" {% if catequizando.estado == 'Inactivo' %}selected{% endif %}>Inactivo</option>
+        </select>
+        <button type="submit">Actualizar Datos</button>
+    </form>
+    {% else %}
+    <p>No se encontró el catequizando para editar.</p>
+    {% endif %}
+</div>
+{% endblock %}

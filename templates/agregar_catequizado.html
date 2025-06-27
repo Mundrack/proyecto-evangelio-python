@@ -1,0 +1,23 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="form-container">
+    <h2>Registrar Nuevo Catequizando</h2>
+    <form action="{{ url_for('agregar_catequizando') }}" method="post">
+        <label for="nombres">Nombres:</label>
+        <input type="text" id="nombres" name="nombres" required>
+        <label for="apellidos">Apellidos:</label>
+        <input type="text" id="apellidos" name="apellidos" required>
+        <label for="cedula">Cédula:</label>
+        <input type="text" id="cedula" name="cedula" required>
+        <label for="fecha_nacimiento">Fecha de Nacimiento:</label>
+        <input type="date" id="fecha_nacimiento" name="fecha_nacimiento" required>
+        <label for="genero">Género:</label>
+        <select id="genero" name="genero">
+            <option value="M">Masculino</option>
+            <option value="F">Femenino</option>
+            <option value="O">Otro</option>
+        </select>
+        <button type="submit">Guardar Catequizando</button>
+    </form>
+</div>
+{% endblock %}

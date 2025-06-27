@@ -1,84 +1,150 @@
-# archivo: app.py
-from flask import Flask, render_template, request, redirect, url_for, flash
+# archivo: app.py (VERSIÓN FINAL Y CORREGIDA)
+# Propósito: El corazón de la aplicación web.
+
+# --- 1. IMPORTACIONES ---
+from flask import Flask, render_template, request, redirect, url_for, flash, session
 from database import get_db
 from bson.objectid import ObjectId
 from datetime import datetime
+from werkzeug.security import generate_password_hash, check_password_hash
+from functools import wraps
 
-# Inicialización de la aplicación Flask
+# --- 2. CONFIGURACIÓN DE LA APLICACIÓN ---
 app = Flask(__name__)
-# Necesitamos una clave secreta para usar 'flash messages'
-app.secret_key = 'mi_clave_secreta_super_segura' 
+app.secret_key = 'un-secreto-muy-bien-guardado-para-el-proyecto'
 
-# Ruta principal: Muestra el formulario para agregar catequizandos
-@app.route('/', methods=['GET', 'POST'])
-def index():
+# --- 3. DECORADOR DE AUTENTICACIÓN (LÓGICA DE PERMISOS CORREGIDA) ---
+def login_required(role="any"):
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            if 'user_id' not in session:
+                flash("Debes iniciar sesión para acceder a esta página.", "warning")
+                return redirect(url_for('login'))
+
+            user_role = session.get('role')
+            # ----- LÓGICA CORREGIDA -----
+            # Si el rol del usuario no es 'admin' (que puede todo)
+            # Y si se requiere un rol específico (no es 'any')
+            # Y si el rol del usuario no es el requerido
+            if user_role != 'admin' and role != "any" and user_role != role:
+                flash("No tienes los permisos necesarios para realizar esta acción.", "error")
+                return redirect(url_for('index'))
+            
+            return f(*args, **kwargs)
+        return decorated_function
+    return decorator
+
+# --- 4. RUTAS DE AUTENTICACIÓN ---
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if 'user_id' in session: return redirect(url_for('index'))
     if request.method == 'POST':
-        # 1. Recibir datos del formulario
-        nombres = request.form['nombres']
-        apellidos = request.form['apellidos']
-        cedula = request.form['cedula']
-        fecha_nac_str = request.form['fecha_nacimiento']
-
-        # Validar que los campos no estén vacíos
-        if not all([nombres, apellidos, cedula, fecha_nac_str]):
-            flash('Todos los campos son obligatorios.', 'error')
+        db = get_db()
+        if db is None:
+            flash("Error crítico de conexión con la DB.", "error")
+            return render_template('login.html')
+        
+        usuario_db = db.usuarios.find_one({'usuario': request.form['usuario']})
+        if usuario_db and check_password_hash(usuario_db['contrasena'], request.form['contrasena']):
+            session['user_id'] = str(usuario_db['_id'])
+            session['usuario'] = usuario_db['usuario']
+            session['rol'] = usuario_db['rol']
+            flash(f"¡Bienvenido de vuelta, {session['usuario']}!", 'success')
             return redirect(url_for('index'))
-
-        # 2. Conectar a la DB y preparar el documento
-        db = get_db()
-        if db is not None:
-            catequizandos_collection = db.catequizandos
-            
-            # Convertir la fecha de string a objeto datetime
-            fecha_nacimiento = datetime.strptime(fecha_nac_str, '%Y-%m-%d')
-            
-            nuevo_catequizando = {
-                "datos_personales": {
-                    "nombres": nombres,
-                    "apellidos": apellidos,
-                    "cedula": cedula,
-                    "fecha_nacimiento": fecha_nacimiento,
-                    "genero": request.form.get('genero', 'O'), # Usar .get para campos opcionales
-                    "fecha_registro": datetime.now()
-                },
-                "estado": "Activo",
-                "fecha_ingreso": datetime.now(),
-                "familiares": [],
-                "sacramentos": [],
-                "evaluaciones": [],
-                "certificados": []
-            }
-            
-            # 3. Insertar en la base de datos
-            catequizandos_collection.insert_one(nuevo_catequizando)
-            flash('¡Catequizando agregado con éxito!', 'success')
         else:
-            flash('Error de conexión con la base de datos.', 'error')
+            flash('Usuario o contraseña incorrectos.', 'error')
+    return render_template('login.html')
 
-        # Redirigir a la misma página para limpiar el formulario
-        return redirect(url_for('index'))
+@app.route('/logout')
+def logout():
+    session.clear()
+    flash('Has cerrado sesión.', 'info')
+    return redirect(url_for('login'))
 
-    # Si el método es GET, simplemente muestra la página
-    return render_template('index.html')
-
-# Ruta para la página de consulta
-@app.route('/consultar', methods=['GET', 'POST'])
-def consultar():
-    resultado = None
+@app.route('/registrar_usuario', methods=['GET', 'POST'])
+@login_required(role='admin') # Protegemos esta ruta, solo admins pueden registrar nuevos usuarios
+def registrar_usuario():
     if request.method == 'POST':
-        cedula_a_buscar = request.form['cedula_busqueda']
         db = get_db()
-        if db is not None:
-            # Buscar un solo documento que coincida con la cédula
-            resultado = db.catequizandos.find_one({"datos_personales.cedula": cedula_a_buscar})
-            if not resultado:
-                flash(f'No se encontró ningún catequizando con la cédula {cedula_a_buscar}.', 'warning')
-        else:
-            flash('Error de conexión con la base de datos.', 'error')
-    
-    # Renderizar la plantilla, pasándole el resultado (que puede ser None o el documento encontrado)
-    return render_template('consulta.html', resultado=resultado)
+        if db.usuarios.find_one({'usuario': request.form['usuario']}):
+            flash(f"El nombre de usuario '{request.form['usuario']}' ya existe.", "error")
+            return redirect(url_for('registrar_usuario'))
+        
+        nuevo_usuario = {
+            'usuario': request.form['usuario'],
+            'contrasena': generate_password_hash(request.form['contrasena']),
+            'rol': request.form['rol'],
+            'nombre_completo': request.form['nombre_completo']
+        }
+        if request.form['rol'] == 'catequizando' and request.form.get('cedula_asociada'):
+            catequizando = db.catequizandos.find_one({'datos_personales.cedula': request.form['cedula_asociada']})
+            if catequizando:
+                nuevo_usuario['catequizando_id'] = catequizando['_id']
+            else:
+                flash(f"Cédula {request.form['cedula_asociada']} no encontrada en catequizandos.", "warning")
+        
+        db.usuarios.insert_one(nuevo_usuario)
+        flash(f"Usuario '{request.form['usuario']}' registrado con éxito.", "success")
+        return redirect(url_for('login'))
+    return render_template('registrar_usuario.html')
 
-# Esto permite ejecutar la aplicación directamente con 'python app.py'
+# --- 5. RUTAS PRINCIPALES Y CRUD ---
+@app.route('/')
+@login_required()
+def index():
+    db = get_db()
+    lista_catequizandos = []
+    
+    if db is not None:
+        if session['rol'] == 'catequizando':
+            usuario = db.usuarios.find_one({'_id': ObjectId(session['user_id'])})
+            if usuario and 'catequizando_id' in usuario:
+                catequizando = db.catequizandos.find_one({'_id': usuario['catequizando_id']})
+                if catequizando:
+                    lista_catequizandos.append(catequizando)
+        else: # admin y catequista ven todo
+            lista_catequizandos = list(db.catequizandos.find({}))
+    else:
+        flash("Error de conexión con la DB.", "error")
+        
+    return render_template('index.html', catequizandos=lista_catequizandos)
+
+@app.route('/agregar_catequizando', methods=['GET', 'POST'])
+@login_required(role='admin')
+def agregar_catequizando():
+    if request.method == 'POST':
+        db = get_db()
+        db.catequizandos.insert_one({
+            "datos_personales": { "nombres": request.form['nombres'], "apellidos": request.form['apellidos'], "cedula": request.form['cedula'], "fecha_nacimiento": datetime.strptime(request.form['fecha_nacimiento'], '%Y-%m-%d'), "genero": request.form.get('genero')},
+            "estado": "Activo", "fecha_ingreso": datetime.now(), "familiares": [], "sacramentos": [], "evaluaciones": [], "asistencias": [], "certificados": []
+        })
+        flash('Catequizando agregado con éxito.', 'success')
+        return redirect(url_for('index'))
+    return render_template('agregar_catequizando.html')
+
+@app.route('/editar_catequizando/<id>', methods=['GET', 'POST'])
+@login_required(role='admin')
+def editar_catequizando(id):
+    db = get_db()
+    filtro = {'_id': ObjectId(id)}
+    if request.method == 'POST':
+        db.catequizandos.update_one(filtro, {"$set": {
+            "datos_personales.nombres": request.form['nombres'], "datos_personales.apellidos": request.form['apellidos'], "datos_personales.cedula": request.form['cedula'], "datos_personales.fecha_nacimiento": datetime.strptime(request.form['fecha_nacimiento'], '%Y-%m-%d'), "datos_personales.genero": request.form.get('genero'), "estado": request.form.get('estado')
+        }})
+        flash('Catequizando actualizado.', 'success')
+        return redirect(url_for('index'))
+    catequizando = db.catequizandos.find_one(filtro)
+    return render_template('editar_catequizando.html', catequizando=catequizando)
+
+@app.route('/eliminar_catequizando/<id>', methods=['POST'])
+@login_required(role='admin')
+def eliminar_catequizando(id):
+    db = get_db()
+    db.catequizandos.delete_one({'_id': ObjectId(id)})
+    flash('Catequizando eliminado.', 'success')
+    return redirect(url_for('index'))
+
+# --- 6. INICIAR LA APLICACIÓN ---
 if __name__ == '__main__':
     app.run(debug=True)
