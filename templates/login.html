@@ -1,13 +1,23 @@
-    {% extends "layout.html" %}
-    {% block content %}
-    <div class="form-container">
-        <h2>Iniciar Sesión</h2>
-        <form action="{{ url_for('login') }}" method="post">
-            <label for="usuario">Nombre de Usuario:</label>
-            <input type="text" id="usuario" name="usuario" required>
-            <label for="contrasena">Contraseña:</label>
-            <input type="password" id="contrasena" name="contrasena" required>
-            <button type="submit">Entrar</button>
-        </form>
-    </div>
-    {% endblock %}
+{% extends "layout.html" %}
+
+<!-- Sobrescribimos el bloque 'title' para darle un título específico a esta página -->
+{% block title %}Iniciar Sesión - Sistema de Catequesis{% endblock %}
+
+<!-- Aquí definimos el contenido principal de la página de login -->
+{% block content %}
+<div class="form-container">
+    <h2>Iniciar Sesión</h2>
+    
+    <!-- El formulario envía los datos a la ruta 'login' usando el método POST -->
+    <form action="{{ url_for('login') }}" method="post">
+        
+        <label for="usuario">Nombre de Usuario:</label>
+        <input type="text" id="usuario" name="usuario" required autofocus>
+        
+        <label for="contrasena">Contraseña:</label>
+        <input type="password" id="contrasena" name="contrasena" required>
+        
+        <button type="submit">Entrar</button>
+    </form>
+</div>
+{% endblock %}

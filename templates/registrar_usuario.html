@@ -1,9 +1,15 @@
+<!--
+  Propósito: Formulario para que el administrador cree nuevas cuentas de usuario.
+-->
 {% extends "layout.html" %}
+
+{% block title %}Registrar Usuario - Sistema de Catequesis{% endblock %}
 
 {% block content %}
 <div class="form-container">
     <h2>Registrar Nuevo Usuario del Sistema</h2>
     <form action="{{ url_for('registrar_usuario') }}" method="post">
+
         <label for="nombre_completo">Nombre Completo:</label>
         <input type="text" id="nombre_completo" name="nombre_completo" required>
 
@@ -14,36 +20,41 @@
         <input type="password" id="contrasena" name="contrasena" required>
 
         <label for="rol">Rol:</label>
-        <!-- ### CAMBIO 1: Añadimos un id al select para poder controlarlo con JS -->
+        <!-- El evento onchange llama a nuestra función JS cada vez que cambia la selección -->
         <select id="rol" name="rol" onchange="toggleCedulaField()">
             <option value="admin">Administrador</option>
             <option value="catequista">Catequista</option>
             <option value="catequizando">Catequizando</option>
         </select>
         
-        <!-- ### CAMBIO 2: Este bloque se mostrará u ocultará dinámicamente -->
+        <!-- Este contenedor está oculto por defecto y solo se muestra si el rol es 'catequizando' -->
         <div id="cedula_asociada_container" style="display:none;">
-            <label for="cedula_asociada">Cédula del Catequizando (para asociar la cuenta):</label>
-            <input type="text" id="cedula_asociada" name="cedula_asociada" placeholder="Ingrese la cédula del catequizando existente">
+            <label for="cedula_asociada">Cédula del Catequizando (para vincular la cuenta):</label>
+            <input type="text" id="cedula_asociada" name="cedula_asociada" placeholder="Ingrese la cédula del catequizando ya existente">
         </div>
 
         <button type="submit">Registrar Usuario</button>
     </form>
 </div>
 
-<!-- ### CAMBIO 3: El script que hace la magia -->
+<!-- Script de JavaScript para la lógica del formulario -->
 <script>
     function toggleCedulaField() {
         var rolSelect = document.getElementById('rol');
         var cedulaContainer = document.getElementById('cedula_asociada_container');
+        
+        // Si el valor seleccionado es 'catequizando', muestra el campo de la cédula.
         if (rolSelect.value === 'catequizando') {
             cedulaContainer.style.display = 'block';
         } else {
+            // Para cualquier otro rol, lo oculta.
             cedulaContainer.style.display = 'none';
         }
     }
 
-    // Llamamos a la función al cargar la página por si el rol ya está seleccionado
+    // Se ejecuta esta función una vez que el contenido de la página se ha cargado.
+    // Esto asegura que si el formulario se recarga con 'catequizando' ya seleccionado,
+    // el campo de la cédula aparezca correctamente desde el inicio.
     document.addEventListener('DOMContentLoaded', toggleCedulaField);
 </script>
 {% endblock %}

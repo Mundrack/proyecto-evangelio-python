@@ -1,29 +1,45 @@
+<!--
+  Propósito: Formulario para modificar los datos de un catequizando existente.
+-->
 {% extends "layout.html" %}
+
+{% block title %}Editar Catequizando - Sistema de Catequesis{% endblock %}
+
 {% block content %}
 <div class="form-container">
     <h2>Editar Catequizando</h2>
+    {# Es una buena práctica verificar que el objeto 'catequizando' exista antes de usarlo #}
     {% if catequizando %}
     <form action="{{ url_for('editar_catequizando', id=catequizando._id) }}" method="post">
+        
         <label for="nombres">Nombres:</label>
+        <!-- El atributo 'value' rellena el campo con el dato actual -->
         <input type="text" id="nombres" name="nombres" value="{{ catequizando.datos_personales.nombres }}" required>
+        
         <label for="apellidos">Apellidos:</label>
         <input type="text" id="apellidos" name="apellidos" value="{{ catequizando.datos_personales.apellidos }}" required>
+        
         <label for="cedula">Cédula:</label>
         <input type="text" id="cedula" name="cedula" value="{{ catequizando.datos_personales.cedula }}" required>
+        
         <label for="fecha_nacimiento">Fecha de Nacimiento:</label>
+        <!-- Para las fechas, necesitamos formatearlas a 'YYYY-MM-DD' para que el input type="date" las entienda -->
         <input type="date" id="fecha_nacimiento" name="fecha_nacimiento" value="{{ catequizando.datos_personales.fecha_nacimiento.strftime('%Y-%m-%d') }}" required>
+        
         <label for="genero">Género:</label>
         <select id="genero" name="genero">
+            <!-- Usamos un 'if' para marcar como 'selected' la opción que ya está guardada -->
             <option value="M" {% if catequizando.datos_personales.genero == 'M' %}selected{% endif %}>Masculino</option>
             <option value="F" {% if catequizando.datos_personales.genero == 'F' %}selected{% endif %}>Femenino</option>
             <option value="O" {% if catequizando.datos_personales.genero == 'O' %}selected{% endif %}>Otro</option>
         </select>
+        
         <label for="estado">Estado:</label>
         <select id="estado" name="estado">
             <option value="Activo" {% if catequizando.estado == 'Activo' %}selected{% endif %}>Activo</option>
             <option value="Inactivo" {% if catequizando.estado == 'Inactivo' %}selected{% endif %}>Inactivo</option>
         </select>
-                <!-- ... justo antes del botón de Actualizar ... -->
+
         <label for="grupo_id">Asignar a Grupo:</label>
         <select id="grupo_id" name="grupo_id">
             <option value="">-- Sin Grupo --</option>
@@ -33,7 +49,7 @@
             </option>
             {% endfor %}
         </select>
-    <!-- ... -->
+
         <button type="submit">Actualizar Datos</button>
     </form>
     {% else %}

@@ -3,42 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Catequesis</title>
-    <!-- ### CAMBIO 1: Enlazamos nuestro archivo CSS externo -->
+    <!-- El título puede ser dinámico si se define en las plantillas hijas -->
+    <title>{% block title %}Sistema de Catequesis{% endblock %}</title>
+    
+    <!-- Enlazamos nuestra hoja de estilos CSS externa -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
+
+    <!-- El contenedor principal centra el contenido y le da un fondo blanco y sombra -->
     <div class="container">
+        
+        <!-- ======================= BARRA DE NAVEGACIÓN ======================= -->
         <nav>
+            <!-- Sección izquierda de la barra de navegación -->
             <div class="nav-left">
+                {# Solo mostramos enlaces si el usuario ha iniciado sesión #}
                 {% if session.user_id %}
-                <!-- ... dentro del nav-left ... -->
-                {% if session.rol == 'admin' %}
-                    <a href="{{ url_for('agregar_catequizando') }}">Agregar Catequizando</a>
-                    <a href="{{ url_for('registrar_usuario') }}">Registrar Usuario</a>
-                    <!-- ### LÍNEA AÑADIDA ### -->
-                    <a href="{{ url_for('lista_grupos') }}">Gestionar Grupos</a>
-                {% endif %}
-                <!-- ... -->
                     <a href="{{ url_for('index') }}">Inicio</a>
-                    {# Solo los admins ven estas opciones #}
+                    
+                    {# Opciones exclusivas para el rol 'admin' #}
                     {% if session.rol == 'admin' %}
                         <a href="{{ url_for('agregar_catequizando') }}">Agregar Catequizando</a>
                         <a href="{{ url_for('registrar_usuario') }}">Registrar Usuario</a>
+                        <a href="{{ url_for('lista_grupos') }}">Gestionar Grupos</a>
                     {% endif %}
                 {% endif %}
             </div>
+
+            <!-- Sección derecha de la barra de navegación -->
             <div class="nav-right">
                 {% if session.user_id %}
-                    <!-- ### CAMBIO 2: Mostramos el nombre completo, que es más amigable -->
+                    <!-- Mostramos el nombre completo y rol del usuario logueado -->
                     <span class="user-info">{{ session.nombre_completo }} <span>({{ session.rol }})</span></span>
+                    <!-- Enlace para cerrar sesión -->
                     <a href="{{ url_for('logout') }}">Cerrar Sesión</a>
                 {% else %}
+                    <!-- Si nadie ha iniciado sesión, solo mostramos el enlace para hacerlo -->
                     <a href="{{ url_for('login') }}">Iniciar Sesión</a>
                 {% endif %}
             </div>
         </nav>
         
+        <!-- ======================= SECCIÓN DE MENSAJES FLASH ======================= -->
+        {# Esta sección muestra los mensajes de feedback (éxito, error, etc.) #}
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
@@ -47,9 +55,14 @@
             {% endif %}
         {% endwith %}
 
+        <!-- ======================= BLOQUE DE CONTENIDO PRINCIPAL ======================= -->
         <main>
+            {# Aquí es donde cada página hija insertará su propio contenido. #}
             {% block content %}{% endblock %}
         </main>
+
     </div>
+
+    <!-- Aquí se podrían añadir scripts de JavaScript globales si fueran necesarios -->
 </body>
 </html>

@@ -1,10 +1,18 @@
+<!--
+  Propósito: Mostrar una tabla con todos los grupos de catequesis creados.
+-->
 {% extends "layout.html" %}
 
+{% block title %}Gestión de Grupos - Sistema de Catequesis{% endblock %}
+
 {% block content %}
-    <div style="display: flex; justify-content: space-between; align-items: center;">
+    <!-- Encabezado con un botón para crear un nuevo grupo -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <h2>Gestión de Grupos</h2>
+        <!-- Este botón/enlace lleva al formulario para agregar un grupo nuevo -->
         <a href="{{ url_for('agregar_grupo') }}" class="button-like">Crear Nuevo Grupo</a>
     </div>
+
     <table>
         <thead>
             <tr>
@@ -18,24 +26,35 @@
             {% for grupo in grupos %}
             <tr>
                 <td>{{ grupo.nombre }}</td>
-                <td>{{ grupo.descripcion or 'N/A' }}</td>
+                <td>{{ grupo.descripcion or 'Sin descripción' }}</td>
+                <!-- Gracias al 'lookup' en app.py, podemos acceder al nombre del catequista directamente -->
                 <td>{{ grupo.catequista_info.nombre_completo or 'Sin asignar' }}</td>
                 <td class="actions">
-                    <!-- Aquí irían botones de editar/eliminar grupo en el futuro -->
+                    <!-- En el futuro, aquí se podrían añadir enlaces para editar o eliminar grupos -->
                     <a href="#">Editar</a>
                 </td>
             </tr>
             {% else %}
             <tr>
-                <td colspan="4" style="text-align: center;">No hay grupos creados.</td>
+                <td colspan="4" style="text-align: center;">No hay grupos creados todavía.</td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
+
+    <!-- Pequeño estilo en línea para el botón 'Crear Nuevo Grupo' para no sobrecargar el CSS principal -->
     <style>
         .button-like {
-            background-color: #5a2a88; color: white; padding: 10px 15px;
-            text-decoration: none; border-radius: 5px; font-weight: bold;
+            background-color: #5a2a88;
+            color: white !important; /* !important para asegurar que sobreescriba otros estilos de 'a' */
+            padding: 10px 15px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .button-like:hover {
+            background-color: #4e2474;
         }
     </style>
 {% endblock %}
